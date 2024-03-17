@@ -1,0 +1,62 @@
+<!-- routine_history.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Routine History{% endblock %}
+
+{% block content %}
+  <h1>Routine History</h1>
+  <p>This data is used for building the dashboard here. Please do not delete the data unless wrong input.</p>
+  {% if routine_history %}
+    <div class="routine-container pill-detection-div" style="max-width: 100%; overflow-x: auto;">
+      <table class="routine-table">
+        <thead>
+          <tr>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Pill</th>
+            <th>Quantity</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in routine_history %}
+            <tr>
+              <td>{{ entry.start_date.strftime("%Y-%m-%d") }}</td>
+              <td>{{ entry.end_date.strftime("%Y-%m-%d") }}</td>
+              <td>{{ entry.start_time.strftime("%H:%M") }}</td>
+              <td>{{ entry.end_time.strftime("%H:%M") }}</td>
+              <td>{{ entry.pill }}</td>
+              <td>{{ entry.quantity }}</td>
+              <td>
+                <button class="delete-button" onclick="deleteRoutine('{{ entry.id }}')">Delete</button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="no-records">No routine history available.</p>
+  {% endif %}
+  <script>
+    function deleteRoutine(routineId) {
+      var form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '{{ url_for("delete_routine") }}';  // Update with the actual route
+      form.style.display = 'none';
+
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'routine_id';
+      input.value = routineId;
+
+      form.appendChild(input);
+      document.body.appendChild(form);
+
+      form.submit();
+    }
+  </script>
+{% endblock %}

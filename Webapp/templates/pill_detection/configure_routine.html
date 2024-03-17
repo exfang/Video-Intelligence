@@ -1,0 +1,168 @@
+<!-- configure_routine.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Routine Configuration{% endblock %}
+
+{% block content %}
+  <h1>Medication Routine Configuration</h1>
+
+  <button type="button" onclick="toggleMedicationForm()" class="routine-button rounded-input add-routine-button">Add Routine</button>
+
+  {% if routine %}
+  <h2>Configured Routines</h2>
+    <div class="routine-container pill-detection-div" style="max-width: 100%; overflow-x: auto;">
+      
+      <table class="routine-table">
+        <thead>
+          <tr>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Pill</th>
+            <th>Qty</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in routine %}
+            <tr>
+                <td>{{ entry.start_date.strftime("%Y-%m-%d") }}</td>
+                <td>{{ entry.end_date.strftime("%Y-%m-%d") }}</td>
+                <td>{{ entry.start_time.strftime("%H:%M") }}</td>
+                <td>{{ entry.end_time.strftime("%H:%M") }}</td>
+                <td>{{ entry.pill }}</td>
+                <td>{{ entry.quantity }}</td>
+                <td>
+                    <button class="delete-button" onclick="deleteRoutine('{{ entry.id }}')">Delete</button>
+                </td>
+            </tr>
+        {% endfor %}
+
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="no-records">No records available.</p>
+  {% endif %}
+
+  <form method="POST" action="{{ url_for('configure_routine') }}" id="medication-form" class="medication-form" style="display: none;">
+    <div id="medication-fields" class="pill-detection-div">
+      <div class="medication-field">
+        <hr>
+        <label for="start_date">Start Date:</label>
+        <input type="date" name="start_date" required class="rounded-input">
+
+        <label for="end_date">End Date:</label>
+        <input type="date" name="end_date" required class="rounded-input">
+
+        <script>
+          function adjustTimeInput(inputField) {
+            var selectedTime = new Date("1970-01-01T" + inputField.value + ":00");
+            var minutes = selectedTime.getMinutes();
+            
+            // Round the minutes to the nearest 30
+            minutes = Math.round(minutes / 30) * 30;
+        
+            // Update the selected time
+            selectedTime.setMinutes(minutes);
+        
+            // Format the time to HH:mm
+            var formattedTime = selectedTime.toTimeString().substring(0, 5);
+        
+            // Update the input field value
+            inputField.value = formattedTime;
+          }
+        </script>
+        
+        <!-- Update the time input fields to call the new JavaScript function -->
+        <label for="start_time">Start Time:</label>
+        <input type="time" name="start_time" required class="rounded-input" onchange="adjustTimeInput(this);">
+        
+        <label for="end_time">End Time:</label>
+        <input type="time" name="end_time" required class="rounded-input" onchange="adjustTimeInput(this);">
+        
+        <br>
+        <label for="pill">Pills:</label>
+        <select name="pill" required class="rounded-input">
+          <!-- Populate this dropdown with options based on uploaded images -->
+          {% for category, images in image_data.items() %}
+            <option value="{{ category }}">{{ category }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="quantity">Quantity:</label>
+        <input type="number" name="quantity" required class="rounded-input" min=1 max=10 style="max-width: 10vh;">
+      
+      </div>
+    
+    </div>
+    <button type="button" onclick="addMedication()" class="routine-button add-medication-button rounded-input">Add Medication</button>
+    <button type="submit" class="routine-button save-routine-button rounded-input">Save Routine</button>
+  </form>
+
+  <script>
+    
+    function toggleMedicationForm() {
+      var medicationForm = document.getElementById('medication-form');
+      medicationForm.style.display = medicationForm.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function addMedication() {
+      // Create a new set of medication fields
+      var newFields = document.createElement('div');
+      newFields.className = 'medication-field'; // Add a class for styling if needed
+      newFields.innerHTML = `
+        <hr>
+        <label for="start_date">Start Date:</label>
+        <input type="date" name="start_date" required class="rounded-input">
+
+        <label for="end_date">End Date:</label>
+        <input type="date" name="end_date" required class="rounded-input">
+
+        <label for="start_time">Start Time:</label>
+        <input type="time" name="start_time" required class="rounded-input" step="1800">
+
+        <label for="end_time">End Time:</label>
+        <input type="time" name="end_time" required class="rounded-input" step="1800">
+        <br>
+        <label for="pill">Pills:</label>
+        <select name="pill" required class="rounded-input">
+          <!-- Populate this dropdown with options based on uploaded images -->
+          {% for category, images in image_data.items() %}
+            <option value="{{ category }}">{{ category }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="quantity">Quantity:</label>
+        <input type="number" name="quantity" required class="rounded-input" min=1 max=10 style="width: 10vh;">
+
+        <button type="button" onclick="removeMedication(this)" class="routine-button remove-medication-button">Remove</button>
+      `;
+      document.getElementById('medication-fields').appendChild(newFields);
+    }
+
+    function removeMedication(button) {
+      // Remove the medication fields when the "Remove" button is clicked
+      button.parentNode.remove();
+    }
+
+    function deleteRoutine(routineId) {
+      var form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '{{ url_for("hide_routine") }}';  // Update with the actual route
+      form.style.display = 'none';
+
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'routine_id';
+      input.value = routineId;
+
+      form.appendChild(input);
+      document.body.appendChild(form);
+
+      form.submit();
+    }
+  </script>
+{% endblock %}

@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}Task and Caregiver Manager{% endblock %}
+
+{% block content %}
+    <meta charset="UTF-8">
+    <meta http-equiv="cache-control" content="max-age=0" />
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="expires" content="0" />
+    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+
+
+        #timer {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        #restart-button {
+            cursor: pointer;
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        #game-container {
+            max-width: 400px;
+            text-align: center;
+            border: 2px solid #000;
+            border-radius: 10px;
+            padding: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .memory-card {
+            width: 80px;
+            height: 80px;
+            background-color: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            user-select: none;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            margin: 5px;
+        }
+
+        .memory-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .memory-card.matched {
+            background-color: #007bff; /* Blue color for matched cards */
+        }
+
+        .memory-card .face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .memory-card .front {
+            transform: rotateY(0deg);
+        }
+
+        .memory-card .back {
+            transform: rotateY(180deg);
+            display: none;
+            background-size: cover;
+        }
+
+        .memory-card.flipped .back {
+            display: flex;
+        }
+
+        /* Style for the modal */
+        .modal-content img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    </style>
+    <title>Memory Card Game</title>
+</head>
+
+<body>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+        <div id="timer">Time: 0 seconds</div>
+        <button id="restart-button" onclick="restartGame()">Restart Game</button>
+      </div>
+      
+    <div id="game-container" class="container">
+        <div class="row no-gutters" id="game-board">
+            <!-- Cards will be generated here -->
+        </div>
+    </div>
+
+    <!-- Modal for Congrats message -->
+    <div class="modal fade" id="congratsModal" tabindex="-1" role="dialog" aria-labelledby="congratsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <img src="./static/img.png" alt="Trophy Image">
+                <p style="text-align: center;"><strong>Congratulations! You Won!</strong></p>                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Function to shuffle an array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Generate a list of random words
+        const words = ['Apple', 'Banana', 'Cherry', 'Date', 'Grapes', 'Lemon', 'Orange', 'Pear'];
+        const allCards = [...words, ...words]; // Duplicate to create pairs
+
+        // Create the game board
+        const gameBoard = document.getElementById('game-board');
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let isTimerRunning = false;
+        let startTime;
+        let timerInterval;
+
+        // Function to handle card flipping
+        function flipCard() {
+            if (!isTimerRunning) {
+                startTimer();
+            }
+
+            if (flippedCards.length < 2 && !flippedCards.includes(this) && !this.classList.contains('flipped')) {
+                this.classList.add('flipped');
+                flippedCards.push(this);
+
+                if (flippedCards.length === 2) {
+                    setTimeout(checkMatch, 1000);
+                }
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+
+            if (card1.textContent === card2.textContent) {
+                card1.removeEventListener('click', flipCard);
+                card2.removeEventListener('click', flipCard);
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+
+                if (matchedPairs === words.length) {
+                    // Show Congrats modal on game completion
+                    $('#congratsModal').modal('show');
+
+                    stopTimer();
+                    enableRestartButton();
+
+                    // Record the time only when the user wins the game
+                    recordTime(secondsElapsed);
+                }
+            } else {
+                // If no match, revert back to '?'
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                }, 500);
+            }
+
+            flippedCards = [];
+        }
+
+        // Function to start the timer
+        function startTimer() {
+            isTimerRunning = true;
+            startTime = performance.now();
+
+            timerInterval = setInterval(() => {
+                const currentTime = performance.now();
+                const secondsElapsed = Math.floor((currentTime - startTime) / 1000);
+                document.getElementById('timer').textContent = `Time: ${secondsElapsed} seconds`;
+            }, 1000);
+        }
+
+        // Function to stop the timer
+        function stopTimer() {
+            isTimerRunning = false;
+            clearInterval(timerInterval);
+        }
+
+        // Function to enable the restart button
+        function enableRestartButton() {
+            document.getElementById('restart-button').disabled = false;
+        }
+
+        // Function to restart the game
+        function restartGame() {
+            // Use window.location.href to refresh the page
+            window.location.href = window.location.href;
+        }
+
+        // Initial generation of cards
+        shuffleArray(allCards);
+        allCards.forEach((word, index) => {
+            const card = document.createElement('div');
+            card.classList.add('memory-card');
+            card.dataset.index = index;
+
+            const frontFace = document.createElement('div');
+            frontFace.classList.add('face', 'front');
+            // Default value before flipping is '?'
+            frontFace.textContent = '?';
+
+            const backFace = document.createElement('div');
+            backFace.classList.add('face', 'back');
+            // Default value before flipping is the actual word
+            backFace.textContent = word;
+
+            card.appendChild(frontFace);
+            card.appendChild(backFace);
+
+            card.addEventListener('click', flipCard);
+            gameBoard.appendChild(card);
+        });
+
+        function refreshPage() {
+            location.reload();
+        }
+
+        recordTime(secondsElapsed);
+
+        // Add this function to record the time
+        function recordTime(time) {
+        console.log('Recording time:', time);
+        fetch('/record_time', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ time }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Time recorded successfully.');
+                loadRecordedTimes();
+            } else {
+                console.error('Failed to record time:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error recording time:', error);
+        });
+    }
+
+
+        // Add this function to load recorded times
+        function loadRecordedTimes() {
+            fetch('/get_times')
+            .then(response => response.json())
+            .then(data => {
+                const timesList = document.getElementById('times-list');
+                timesList.innerHTML = '';
+
+                data.forEach(time => {
+                    const li = document.createElement('li');
+                    li.textContent = `Time: ${time.time} seconds`;
+                    timesList.appendChild(li);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching recorded times:', error);
+            });
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,26 @@
+# Virtual Environments
+.env/*
+.venv/*
+
+# Images and Labels
+*.txt
+
+# Andrew's Files
+activate_venv.txt
+Webapp/Merged_Images/
+Webapp/Annotated/
+Webapp/pill_folder/*/output/
+Webapp/.ipynb_checkpoints
+Webapp/runs
+Webapp/pill_folder/*/output
+
+
+Andrew/Pill-Detection/pill_detection/pills image
+Andrew/Pill-Detection/yolov8/Annotated
+Andrew/Pill-Detection/yolov8/Merged_Images
+Andrew/Pill-Detection/yolov8/Upload_Image
+
+Andrew/Face-Recognition/labeled_images
+
+# Dataset Files
+*.db

@@ -1,0 +1,138 @@
+<!-- dashboard.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Medication Dashboard{% endblock %}
+
+{% block content %}
+  <h1>Medication Dashboard</h1>
+
+  {% if kpi_missed_medications is not none %}
+  <div class="medication-container">
+    <div class="medication-container-text">
+      <h2 {% if kpi_missed_medications > 50 %} style='color:red;' {% endif %}>
+        Number of Missed Medications: {{ no_of_missing_routines }}/{{ total_records }} ({{ kpi_missed_medications }}%)
+      </h2>
+    </div>
+    <!-- Include the new date range slider -->
+    <div class="medication-container-slider">
+      <link rel="stylesheet" href="https://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+      <script src="https://code.jquery.com/jquery-1.9.1.js"></script>
+      <script src="https://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+      
+      <div class="medication-container-dropdown">
+        <label for="pill-dropdown" style="font-size: 2vh;">Select Pill:</label>
+        <select id="pill-dropdown" style="font-size: 2vh;">
+          <option value="all">All Pills</option>
+          {% for pill in unique_pills %}
+            <option value="{{ pill }}">{{ pill }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="margin-top: 2vh; width: 100%;">
+        <label for="amount" style="font-size: 2vh;">Date range:</label>
+        <input type="text" id="amount" style="border: 0; font-weight: bold; font-size: 2vh; width: 86.7%;" />
+      </div>
+      <div id="slider-range" style="margin-top: 2vh; width: 100%;"></div>
+      
+    </div>
+  </div>
+{% else %}
+  <p>No data available for the KPI.</p>
+{% endif %}
+
+  <hr>
+
+  {% if chart_html %}
+    <div class="medication-line-chart">
+      {{ chart_html | safe }}
+    </div>
+  {% else %}
+    <p>No data available for the chart.</p>
+  {% endif %}
+
+  {% if donut_chart_html %}
+    <div class="medication-donut-chart">
+      {{ donut_chart_html | safe }}
+    </div>
+  {% else %}
+    <p>No data available for the donut chart.</p>
+  {% endif %}
+
+  <div style="clear: both;"></div> {# Clear the float after the last div #}
+
+
+<!-- Add the following script at the end of the file -->
+<script>
+  $(function () {
+    // Function to update the charts based on the selected date range and pill
+    function updateCharts(startTimestamp, endTimestamp, selectedPill) {
+      // Make an AJAX request to the server
+      $.ajax({
+        url: '/medication_dashboard',
+        type: 'GET',
+        data: {
+          filtered_start: startTimestamp,
+          filtered_end: endTimestamp,
+          selected_pill: selectedPill  // Include selected pill in the request
+        },
+        success: function (data) {
+          // Assuming the server returns the updated chart HTML and donut chart HTML
+          var updatedChartHtml = $(data).find('.medication-line-chart').html();
+          var updatedDonutChartHtml = $(data).find('.medication-donut-chart').html();
+          var updatedMissedMedications = $(data).find('.medication-container-text h2').html();
+
+          // Update the corresponding chart elements
+          $('.medication-line-chart').html(updatedChartHtml);
+          $('.medication-donut-chart').html(updatedDonutChartHtml);
+          $('.medication-container-text h2').html(updatedMissedMedications);
+        },
+        error: function (error) {
+          console.error('Error updating charts:', error);
+        }
+      });
+    }
+
+    $('#pill-dropdown').change(function () {
+      var selectedPill = $(this).val();
+      var startTimestamp = $("#slider-range").slider("values", 0);
+      var endTimestamp = $("#slider-range").slider("values", 1);
+
+      // Update the charts when the user changes the pill selection
+      updateCharts(startTimestamp, endTimestamp, selectedPill);
+    });
+    
+    $("#slider-range").slider({
+      range: true,
+      min: new Date('{{ earliest_start_date }}').getTime() / 1000,
+      max: new Date('{{ current_date }}').getTime() / 1000,
+      step: 86400,
+      values: [
+        new Date('{{ earliest_start_date }}').getTime() / 1000,
+        new Date('{{ current_date }}').getTime() / 1000
+      ],
+      slide: function (event, ui) {
+        $("#amount").val(
+          (new Date(ui.values[0] * 1000).toDateString()) +
+          " - " +
+          (new Date(ui.values[1] * 1000)).toDateString()
+        );
+      },
+      stop: function (event, ui) {
+        // Update the charts and missed medications text when the user stops sliding
+        updateCharts(ui.values[0], ui.values[1]);
+      }
+    });
+
+    // Set initial date range in the input field
+    $("#amount").val(
+      (new Date($("#slider-range").slider("values", 0) * 1000).toDateString()) +
+      " - " +
+      (new Date($("#slider-range").slider("values", 1) * 1000)).toDateString()
+    );
+  });
+</script>
+
+
+{% endblock %}

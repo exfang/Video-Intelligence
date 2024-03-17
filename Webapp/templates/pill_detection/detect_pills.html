@@ -1,0 +1,106 @@
+<!-- detect_pills.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Pill Detection{% endblock %}
+
+{% block content %}
+  <h1>Pill Detection</h1>
+  
+  {% if present == 'True' %}
+  
+  <div class="mirrored-container">
+    <div>
+      <img src="{{ url_for('pill_detection_stream') }}" id="pillImage" class="img-fluid" alt="Webcam Stream" style="width:auto; height:auto;">
+    </div>
+    <div id="pillCounts" style="max-width: 100%; overflow-x: auto;">
+      <h2>Current Medication Routines</h2>
+      <table class="routine-table">
+        <tr>
+          <th class="detection-table">Start</th>
+          <th class="detection-table">End</th>
+          <th class="detection-table">Pill</th>
+          <th class="detection-table">Req Qty</th>
+          <th class="detection-table">Det Qty</th>
+          <th class="detection-table">Status</th>
+        </tr>
+        {% for routine in ongoing_routines %}
+          <tr>
+            <td class="detection-table">{{ routine.start_time.strftime('%H:%M') }}</td>
+            <td class="detection-table">{{ routine.end_time.strftime('%H:%M') }}</td>
+            <td class="detection-table">{{ routine.pill }}</td>
+            <td class="detection-table">{{ routine.quantity }}</td>
+            <td class="detection-table">{{ pill_counts.get(routine.pill, 0) }}</td>
+            <td class="detection-table detection-table-status">{% if pill_counts.get(routine.pill, 0) >= routine.quantity %}Met{% else %}Not Met{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </table>
+      <p>Ensure all the required pills and their respective quantity are present to create a video log.</p>
+      <span id="errorMessage" style="color: red;"></span> <!-- Add this line for the error message -->
+      {% if all_pills_match %} <button id="recordVideoBtn" class="routine-button rounded-input">Record Video</button> {% endif %}
+    </div>
+  </div>
+  {% elif present == 'False' %}
+    <h1>Please retrain your model.</h1>
+  {% elif present == 'Training' %}
+    <h1>Model currently training.</h1>
+    {% if epoch != 0 %}
+      <h1>Current iteration value: {{ epoch }}/40</h1>
+    {% endif %}
+  {% endif %}
+
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      // Function to update pill counts
+      function updatePillCounts() {
+        if ({% if present == 'True' %}true{% else %}false{% endif %}) {
+          $.get('/pill_detection', function (data) {
+            // Replace the content of the pillCounts div with the updated data
+            $('#pillCounts').html($(data).find('#pillCounts').html());
+            // Reattach the click event handler after updating the content
+            attachClickHandler();
+          });
+        }
+      }
+  
+      // Function to attach click event handler
+      function attachClickHandler() {
+        // Handle the click event for the record video button
+        $('#recordVideoBtn').off('click').on('click', function () {
+          // Check if any routine has not been met
+          var notMet = false;
+          $('.detection-table-status').each(function () {
+            if ($(this).text() !== 'Met') {
+              notMet = true;
+            }
+          });
+  
+          // If any routine is not met, display an error message
+          if (notMet) {
+            $('#errorMessage').text('Cannot record video. Some routines are not met.').show();
+          } else {
+            // Add logic to initiate video recording here
+            captureScreenshot();
+            window.location.href = '/record_medication';
+          }
+        });
+      }
+  
+      // Function to capture screenshot
+      function captureScreenshot() {
+        $.post('/capture_screenshot', function (data) {
+          // Handle the response, you can display a message or update the UI as needed
+          console.log(data);
+        });
+      }
+  
+      // Initial attachment of click event handler
+      attachClickHandler();
+  
+      // Update pill counts every 5 seconds (adjust as needed)
+      setInterval(updatePillCounts, 1000);
+    });
+  </script>
+  
+{% endblock %}

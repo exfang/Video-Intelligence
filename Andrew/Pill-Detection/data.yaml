@@ -1,0 +1,9 @@
+names:
+- gastric
+- heart
+- ibuprofen
+- nausea
+- panadol
+nc: 5
+train: pills image/train
+val: pills image/test

@@ -1,0 +1,19 @@
+<!-- templates/pill_detection/view_folder.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}View Folder{% endblock %}
+
+{% block content %}
+    <h1>View Folder: {{ folder }}</h1>
+    {% for image_name in images %}
+        <div style="padding: 20px; display: inline-block;">
+            <img src="{{ url_for('view_image', folder=folder, image=image_name) }}" alt="{{ image_name }}" style="max-height: 200px; margin-right: 10px;">
+            
+            <!-- Delete button with confirmation -->
+            <form action="{{ url_for('delete_image', folder=folder, image=image_name) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this image?');">
+                <button type="submit">Delete</button>
+            </form>
+        </div>
+    {% endfor %}
+{% endblock %}

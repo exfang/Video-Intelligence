@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Faces{% endblock %}
+
+{% block content %}
+    <h1>Upload Faces for Memory Game</h1>
+    
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-info" role="alert">
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <div id="drop-area" class="drop-area pill-detection-div" onclick="triggerFileInput(event)">
+        <form class="my-form" action="{{ url_for('setup_memory_game') }}" method="post" enctype="multipart/form-data" id="my-form">
+            <div class="form-group">
+                <label for="category">Name:</label>
+                <input type="text" name="category" id="category" class="form-control" placeholder="Enter name" required>
+            </div>
+            <div class="form-group">
+                <input type="file" name="image" id="image" accept="image/*" class="file-input" required multiple>
+                <label for="image" id="upload-label">Click here to upload images</label>
+            </div>
+            <output id="result" class="result"></output>
+            <br>
+            <button type="submit" class="btn btn-primary rounded-input">Upload</button>
+        </form>
+    </div>
+
+    <script>
+        var dropArea = document.getElementById('drop-area');
+        var fileInput = document.getElementById('image');
+        var result = document.getElementById('result');
+        var uploadLabel = document.getElementById('upload-label');
+        
+        dropArea.addEventListener('dragover', function (e) {            
+            e.preventDefault()
+            dropArea.classList.add('dragover');
+        });
+        
+        dropArea.addEventListener('dragleave', function (e) {
+            e.preventDefault()
+            dropArea.classList.remove('dragover');
+        });
+        
+        dropArea.addEventListener('drop', function (e) {
+            e.preventDefault()
+            dropArea.classList.remove('dragover');
+
+            var files = e.dataTransfer.files;
+            fileInput.files = files;
+            showImagePreview(fileInput.files);
+        });
+        
+        // Trigger the file input when the drop area is clicked, excluding category input and upload button
+        function triggerFileInput(event) {
+            var targetElement = event.target;
+
+            if (targetElement.type === 'file') {
+                fileInput.click();
+            }
+
+            if (targetElement.type === 'submit') {
+                // Check if the category input is not blank and at least one image is uploaded
+                var categoryInput = document.getElementById('category');
+                var files = fileInput.files;
+                var filesLength = files.length;
+
+                if (categoryInput.value.trim() !== '' && filesLength >= 1) {
+                    document.getElementById('my-form').submit();
+                } else {
+                    alert('Please enter a pill name or upload at least one image.');
+                    event.preventDefault(); // Prevent form submission if category is blank or no images are uploaded
+                }
+            }
+        }
+        
+        fileInput.addEventListener('change', function () {
+            resizeAndShowImagePreview(fileInput.files); // show the resized image
+        });
+        
+        function resizeAndShowImagePreview(files) {
+            result.innerHTML = "";
+            for (var i = 0; i < files.length; i++) {
+                (function (index) {
+                    var file = files[index];
+                    var reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        var img = new Image();
+                        img.src = e.target.result;
+
+                        img.onload = function () {
+                            // Resize the image before displaying
+                            var resizedImg = resizeImage(img, 100); // 200 is the maximum height
+                            
+                            // Apply spacing (margin) to the new image
+                            resizedImg.style.marginRight = '10px'; // Adjust spacing as needed
+
+                            // Append the resized image to the result area
+                            result.appendChild(resizedImg);
+
+                            // Hide the "Click here to upload images" label
+                            uploadLabel.style.display = 'none';
+                        };
+                    };
+
+                    reader.readAsDataURL(file);
+                })(i);
+            }
+        }
+        
+        function resizeImage(image, maxHeight) {
+            var ratio = maxHeight / image.height;
+            var newWidth = image.width * ratio;
+
+            // Create a canvas element to resize the image
+            var canvas = document.createElement('canvas');
+            canvas.width = newWidth;
+            canvas.height = maxHeight;
+
+            // Draw the image on the canvas with the resized dimensions
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(image, 0, 0, newWidth, maxHeight);
+
+            // Create a new image element for the resized image
+            var newImg = document.createElement('img');
+            newImg.src = canvas.toDataURL();
+            newImg.alt = 'Uploaded Image';
+
+            return newImg;
+        }
+    </script>
+{% endblock %}

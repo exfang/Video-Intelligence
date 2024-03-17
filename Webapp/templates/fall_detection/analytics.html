@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}Task and Caregiver Manager{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.1/css/ion.rangeSlider.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.1/js/ion.rangeSlider.min.js"></script>
+
+<div class="container-fluid mt-5">
+    <h1 class="mb-4">Analytics Dashboard</h1>
+
+    <!-- Add the slider element -->
+    <div class="filter-section">
+        <div class="row">
+            <div class="col-md-6 filter-item">
+                <label for="dateRange">Date Range:</label>
+                <input type="text" id="dateRange" name="dateRange" />
+            </div>
+
+            <div class="col-md-6 filter-item">
+                <label for="confidenceRange">Confidence Range:</label>
+                <div id="confidenceRangeSlider"></div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .upper-div {
+            margin-bottom: 20px; /* Add margin at the bottom */
+        }
+        
+        .filter-item {
+            margin-bottom: 15px; /* Adjust the margin between filter items */
+        }
+    </style>
+    
+    <div class="upper-div">
+        <!-- Content of the upper div -->
+    </div>
+    
+    <div class="row">
+        <!-- Line Chart -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Line Chart - Confidence Over Time
+                </div>
+                <div id="lineChart" class="chart"></div>
+            </div>
+        </div>
+
+        <!-- Bar Chart -->
+        <div class="col-md-6 mt-4 mt-md-0">
+            <div class="card">
+                <div class="card-header">
+                    Bar Chart - Event Counts
+                </div>
+                <div id="barChartContainer" class="card-body chart-container">
+                    <div id="barChart" class="chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        min-height: 200vh;
+        margin: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch; /* Enable smooth scrolling on iOS devices */
+    }
+
+    .container-fluid {
+        height: auto;
+        min-height: 80vh; /* Adjust as needed */
+    }
+
+    .chart-container {
+        height: 450px; /* Set a fixed height for both chart containers */
+        overflow: hidden; /* Hide overflow to remove scroll bar */
+    }
+
+    /* Add styling for the filter section */
+    .filter-section {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #f0f0f0; /* Set the background color for the filter section */
+    }
+
+    /* Increase the font size of the slider labels */
+    .irs-grid-text {
+        font-size: 14px; /* Adjust the font size as needed */
+    }
+
+    .irs-line {
+        border: 2px solid #3498db; /* Set the border thickness and color */
+        border-radius: 5px; /* Set the border radius for rounded corners */
+    }
+
+    .irs-line-left, .irs-line-right {
+        background: #3498db; /* Set the background color for the range */
+    }
+
+    .irs-bar {
+        background: #3498db; /* Set the background color for the selected range */
+    }
+</style>
+<script>
+    // Replace the following placeholder data with the data passed from Flask
+
+    // Sample Data for Line Chart
+    var timestamps = {{ timestamps | tojson }};
+    var confidenceValues = {{ confidence_values | tojson }};
+
+    // Sample Data for Bar Chart
+    var eventNames = {{ event_names | tojson }};
+    var eventCounts = {{ event_counts | tojson }};
+
+    // Plot Line Chart
+    var lineChart = document.getElementById('lineChart');
+    var lineChartData = [{
+        x: timestamps,
+        y: confidenceValues,
+        type: 'scatter',
+        mode: 'lines+markers',
+        marker: {color: 'blue'},
+        line: {shape: 'linear'},
+        name: 'Confidence'
+    }];
+    var lineChartLayout = {
+        autosize: true,
+        margin: { t: 0, r: 10, l: 10, b: 40 },  // Adjust margins as needed
+        xaxis: {
+            automargin: true,
+            tickangle: 90,  // Rotate x-axis labels to 90 degrees
+            tickmode: 'array',
+            tickvals: timestamps,  // Specify tick values for better control
+        },
+        yaxis: {automargin: true},
+    };
+    Plotly.newPlot(lineChart, lineChartData, lineChartLayout);
+
+    // Plot Bar Chart
+var barChart = document.getElementById('barChart');
+var barChartData = [{
+    x: eventNames,
+    y: eventCounts,
+    type: 'bar',
+    marker: {color: 'orange'},
+    name: 'Event Counts'
+}];
+var barChartLayout = {
+    autosize: true,
+    margin: { t: 0, r: 10, l: 10, b: 40 },  // Adjust margins as needed
+    xaxis: {
+        automargin: true,
+        type: 'category', // Treat x-axis as categorical
+        title: {
+            text: 'Months' // Add x-axis title
+        }
+    },
+    yaxis: {automargin: true},
+};
+Plotly.newPlot(barChart, barChartData, barChartLayout);
+
+    // Update Line Chart layout dynamically for responsiveness
+    window.addEventListener('resize', function() {
+        Plotly.update(lineChart, {}, {responsive: true});
+    });
+
+    // Update Bar Chart layout dynamically for responsiveness
+    window.addEventListener('resize', function() {
+        Plotly.update(barChart, {}, {responsive: true});
+    });
+</script>
+
+<script>
+    // Your existing script remains unchanged
+
+    // Map timestamps to corresponding date strings
+    var dateLabels = timestamps.map(function (timestamp) {
+        // Customize the date format as needed
+        return new Date(timestamp).toLocaleDateString("en-US");
+    });
+
+    // Add the slider functionality with date labels
+    var dateRangeInput = $("#dateRange");
+    dateRangeInput.ionRangeSlider({
+        type: "double",
+        grid: true,
+        min: 1,
+        max: timestamps.length,
+        from: 1,
+        to: timestamps.length,
+        grid_num: timestamps.length - 1,  // Adjust the number of grid points
+        values: dateLabels,  // Use date labels instead of numbers
+        prettify: function (value) {
+            return dateLabels[value - 1];  // Display the corresponding date label
+        },
+        onChange: function (data) {
+            // Update the charts based on the new date range
+            var startDateIndex = data.from - 1;
+            var endDateIndex = data.to;
+
+            var filteredTimestamps = timestamps.slice(startDateIndex, endDateIndex);
+            var filteredConfidenceValues = confidenceValues.slice(startDateIndex, endDateIndex);
+
+            // Update Line Chart
+            Plotly.update(lineChart, { x: [filteredTimestamps], y: [filteredConfidenceValues] });
+
+            // Update Bar Chart
+            updateBarChart(filteredTimestamps, 'Falls Detected');
+        }
+    });
+
+    // Function to update Bar Chart based on selected date range
+    function updateBarChart(filteredTimestamps, xAxisTitle) {
+        // Extract months from filtered timestamps
+        var filteredMonths = filteredTimestamps.map(function (timestamp) {
+            return new Date(timestamp).toLocaleString('default', { month: 'long' });
+        });
+
+        // Count occurrences of each month
+        var monthCounts = filteredMonths.reduce(function (acc, month) {
+            acc[month] = (acc[month] || 0) + 1;
+            return acc;
+        }, {});
+
+        // Extract unique months and corresponding counts
+        var uniqueMonths = Object.keys(monthCounts);
+        var monthCountsValues = Object.values(monthCounts);
+
+        // Update Bar Chart
+        Plotly.update(barChart, {
+            x: [uniqueMonths],
+            y: [monthCountsValues],
+            'xaxis.type': 'category', // Treat x-axis as categorical
+            'xaxis.categoryorder': 'array', // Use the order of the provided category array
+            'xaxis.categoryarray': uniqueMonths, // Set the category array
+            'xaxis.title.text': xAxisTitle // Add x-axis title
+        });
+    }
+
+    var confidenceRangeSlider = $("#confidenceRangeSlider");
+confidenceRangeSlider.ionRangeSlider({
+    type: "single", // Change to single handle
+    grid: true,
+    min: 0,
+    max: 100,
+    from: 0,
+    step: 1,
+    prettify: function (value) {
+        return value + '%';
+    },
+    onStart: function (data) {
+        // Set the initial value based on a default point, or modify as needed
+        var defaultConfidence = 50;
+
+        // Ensure that the ionRangeSlider is initialized before calling update
+        if (confidenceRangeSlider.data("ionRangeSlider")) {
+            confidenceRangeSlider.data("ionRangeSlider").update({
+                from: defaultConfidence
+            });
+        }
+
+        // Update the charts based on the initial confidence value
+        updateCharts(defaultConfidence / 100, 1); // Assuming endConfidence is 1 (100%)
+    },
+    onChange: function (data) {
+        // Update the charts based on the new confidence value
+        var startConfidence = data.from / 100;
+        var endConfidence = 1; // Assuming endConfidence is 1 (100%)
+
+        updateCharts(startConfidence, endConfidence);
+    }
+});
+
+// Trigger an initial update to ensure the handle is visible
+if (confidenceRangeSlider.data("ionRangeSlider")) {
+    confidenceRangeSlider.data("ionRangeSlider").update({
+        from: 0
+    });
+}
+
+    // Function to update charts based on confidence range
+    function updateCharts(startConfidence, endConfidence) {
+        // Filter data based on the confidence range
+        var filteredTimestamps = [];
+        var filteredConfidenceValues = [];
+
+        for (var i = 0; i < timestamps.length; i++) {
+            if (confidenceValues[i] >= startConfidence && confidenceValues[i] <= endConfidence) {
+                filteredTimestamps.push(timestamps[i]);
+                filteredConfidenceValues.push(confidenceValues[i]);
+            }
+        }
+
+        // Update Line Chart
+        Plotly.update(lineChart, { x: [filteredTimestamps], y: [filteredConfidenceValues] });
+
+        // Update Bar Chart
+        updateBarChart(filteredTimestamps, 'Falls Detected');
+    }
+
+
+</script>
+{% endblock %}

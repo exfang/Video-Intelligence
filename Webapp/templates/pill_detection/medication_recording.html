@@ -1,0 +1,60 @@
+<!-- medication_recording.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}Record Medication{% endblock %}
+
+{% block content %}
+    <h1>Medication Recording</h1>
+    <div style="max-width: 100%; overflow-x: auto;">
+
+    
+    <table class="routine-table pill-detection-div">
+        <thead>
+            <tr>
+                <th>Captured Pill</th>
+                <th>Date of Entry</th>
+                <th>Video Link</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for video in video_list %}
+                <tr>
+                    <td><a href="{{ url_for('serve_pill_screenshot', filename=video['filename']|replace('recording', 'screenshot')|replace('.mp4', '.jpg')) }}" target="_blank">View</a><img height="240" src="{{ url_for('serve_pill_screenshot', filename=video['filename']|replace('recording', 'screenshot')|replace('.mp4', '.jpg')) }}" alt="Pill Image"></td>
+
+                    <td>{{ video['datetime'] }}</td>
+                    <td>
+                        <a href="{{ url_for('serve_video', filename=video['filename']) }}" target="_blank">View</a>
+                        <video width="320" height="240" controls>
+                            <source src="{{ url_for('serve_video', filename=video['filename']) }}" type="video/mp4">
+                            
+                            Your browser does not support the video tag.
+                        </video>
+                    </td>
+                    
+                    <td><button class="delete-button" onclick="deleteRecording('{{ video['filename'] }}', this)">Delete</button></td>
+
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+    <script>
+        async function deleteRecording(filename, button) {
+            if (confirm('Are you sure you want to delete this recording?')) {
+                try {
+                    const response = await fetch(`/delete_video_and_image/${filename}`);
+                    const data = await response.text();
+
+                    // Find the parent <tr> and remove it
+                    var row = button.closest('tr');
+                    row.parentNode.removeChild(row);
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        }
+    </script>
+{% endblock %}

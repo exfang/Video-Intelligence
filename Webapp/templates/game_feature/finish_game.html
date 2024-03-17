@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Game Results{% endblock %}
+
+{% block content %}
+    <h1>Game Results</h1>
+    <p>Your game result:</p>
+    <p>Moves Taken: {{ try_counter }}</p>
+    <p>Number of Photos: {{ photo_count }}</p>
+    <p>Play again <a href="/play_memory_game">here</a>.</p>
+{% endblock %}

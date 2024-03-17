@@ -1,0 +1,68 @@
+    <!-- backlog.html -->
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <title>Task Backlog</title>
+    </head>
+    <body>
+        <div class="container mt-5">
+            <h2>Task Backlog</h2>
+            <!-- backlog.html -->
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Log Time</th>
+                        <th>Video Log</th>
+                        <th>Comments</th>
+                    </tr>
+                </thead>
+                <!-- Updated part of backlog.html -->
+
+                <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                        <td>{{ task.id }}</td>
+                        <td>{{ task.log_time }}</td>
+                        <td><a href="{{ task.video_log }}" target="_blank">Watch Video</a></td>
+                        <td>{{ task.comments }}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteTask({{ task.id }})">Remove</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+
+        </div>
+    <!-- backlog.html -->
+
+    <!-- ... (previous HTML code) -->
+
+    <script>
+        function deleteTask(id) {
+            // Use JavaScript to make an AJAX request to delete the task
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/delete_task/' + id, true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function () {
+                // Reset the auto-increment counter after deletion
+                var resetCounterXHR = new XMLHttpRequest();
+                resetCounterXHR.open('POST', '/reset_task_auto_increment', true);
+                resetCounterXHR.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                resetCounterXHR.send();
+
+                // Reload the page to reflect the changes
+                location.reload();
+            };
+            xhr.send();
+        }
+    </script>
+    </body>
+    </html>

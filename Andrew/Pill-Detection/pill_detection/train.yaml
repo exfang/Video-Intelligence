@@ -1,0 +1,6 @@
+names:
+- pill
+nc: 1
+train: pills image/train/images
+test: pills image/test/images
+val: pills image/val/images

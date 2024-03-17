@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Task and Caregiver Manager{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+    /* Add custom styles here if needed */
+    #event_table {
+        margin-top: 20px;
+    }
+
+    @media (max-width: 767px) {
+        /* Custom styles for mobile devices */
+        #event_table {
+            margin-top: 10px;
+        }
+    }
+</style>
+
+<div class="container mt-5">
+    <h1 class="text-center">Real-time Object Detection</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <img src="{{ url_for('video_feed') }}" alt="Object Detection" class="img-fluid">
+        </div>
+        <div class="col-md-6">
+            <table id="event_table" class="table" style="background-color: white;">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Confidence</th>
+                    </tr>
+                </thead>
+                <tbody id="event_table_body">
+                    <tr>
+                        <td>Fall Detected</td>
+                        <td id="confidence_cell"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Function to display a pop-up notification
+        function showNotification(confidence) {
+            const popup = document.createElement("div");
+            popup.className = "popup";
+            popup.innerHTML = `
+                <h2 style="padding: 0 20px; margin-bottom: 30px; text-align: center;">Notification</h2>
+                <p style="margin-bottom: 30px; text-align: center;">Fall Detected - Confidence: ${confidence}</p>
+                <button style="margin-left: 50%; transform: translateX(-50%);" onclick="document.body.removeChild(this.parentElement)">Close</button>
+            `;
+
+            // Set the background color to #ede9e9
+            popup.style.backgroundColor = "#ede9e9";
+
+            // Set the height and width of the pop-up
+            popup.style.height = "200px";  // Adjust the height as needed
+            popup.style.width = "300px";   // Adjust the width as needed
+
+            // Set the margin of the pop-up
+            popup.style.margin = "40px";   // Adjust the margin as needed
+
+            // Center the pop-up and allow it to overlap existing content
+            popup.style.position = "fixed";
+            popup.style.top = "50%";
+            popup.style.left = "50%";
+            popup.style.transform = "translate(-50%, -50%)";
+            popup.style.zIndex = "9999";
+
+            document.body.appendChild(popup);
+        }
+
+        // Function to send an email
+        function sendEmailToCaregivers(confidence) {
+            fetch("/addEntryAndEmail", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    confidence: confidence
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("Email sent to caregivers successfully");
+                } else {
+                    console.error("Error sending email to caregivers");
+                }
+            })
+            .catch(error => {
+                console.error("Error sending email to caregivers:", error);
+            });
+        }
+
+        let confidenceCell = document.getElementById('confidence_cell');
+        let eventTableBody = document.getElementById('event_table_body');
+        let confidenceTimer;
+        let duration = 0;  // Variable to track the duration above 0.5
+        let aboveThreshold = false;  // Flag to check if confidence is consistently above 0.5
+
+        // Function to reset the timer and duration
+        function resetTimer() {
+            clearInterval(confidenceTimer);
+            confidenceTimer = null;
+            duration = 0;
+            aboveThreshold = false;
+        }
+
+        // Function to add a row to the backlog table
+        function addToBacklog(confidence) {
+            // Create a new row and insert it at the top of the table
+            const newRow = eventTableBody.insertRow(0);
+            const cell1 = newRow.insertCell(0);
+            const cell2 = newRow.insertCell(1);
+
+            // Set the "Event" column to "Fall Detected"
+            cell1.innerHTML = "Fall Detected";
+            cell2.innerHTML = confidence;
+
+            // Display the pop-up notification
+            showNotification(confidence);
+
+            // Send email notification to caregivers
+            sendEmailToCaregivers(confidence);
+
+            // Send data to the server for storage
+            fetch("/addToBacklog", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    event: "Fall Detected",
+                    confidence: confidence
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("Added to backlog successfully");
+                } else {
+                    console.error("Error adding to backlog");
+                }
+            })
+            .catch(error => {
+                console.error("Error adding to backlog:", error);
+            });
+
+            // You can add logic to limit the number of displayed rows if needed
+            const maxRows = 10;
+            if (eventTableBody.children.length > maxRows) {
+                eventTableBody.removeChild(eventTableBody.lastChild);
+            }
+        }
+
+        // Fetch the fall detection status, confidence value, and display text from the server
+        async function fetchData() {
+            const response = await fetch("/status");
+            const data = await response.json();
+
+            if (data.fall_detected && data.confidence_value > 0.5) {
+                confidenceCell.innerHTML = `Above 0.5 (${data.confidence_value})`;
+
+                // Start the timer when crossing the initial confidence threshold
+                if (!aboveThreshold) {
+                    aboveThreshold = true;
+                } else {
+                    // Continue the timer if confidence is still above 0.5
+                    duration += 0.5;
+                }
+
+                // Check if the required duration is met
+                if (aboveThreshold && duration >= 5) {
+                    addToBacklog(data.confidence_value);
+                    resetTimer();
+                }
+            } else {
+                confidenceCell.innerHTML = "";  // Clear the content if no detection or confidence <= 0.5
+                resetTimer();
+            }
+        }
+
+        // Fetch data on page load and set an interval to update periodically
+        fetchData();
+        setInterval(fetchData, 500);  // Adjust the interval as needed
+    });
+</script>
+
+{% endblock %}

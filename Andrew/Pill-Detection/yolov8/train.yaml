@@ -1,0 +1,13 @@
+names:
+- gastric
+- green
+- heart
+- ibuprofen
+- nausea
+- panadol
+- rectangle
+- white
+nc: 8
+train: Merged_Images/train/images
+test: Merged_Images/test/images
+val: Merged_Images/val/images

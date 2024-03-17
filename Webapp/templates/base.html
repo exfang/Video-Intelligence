@@ -1,0 +1,69 @@
+<!-- base.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Your Website Title{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
+</head>
+<body>
+
+    <!-- Add a button for the hamburger icon -->
+    <button class="hamburger">&#9776;</button>
+    <div class="custom-navbar">
+        <a href="{{ url_for('index') }}">Monitor</a>
+        <a href="{{ url_for('caregiver') }}">Assign Caregivers</a>
+        <div class="custom-dropdown">
+            <button class="dropbtn">Fall Info</button>
+            <div class="dropdown-content">
+                <a href="{{ url_for('backlog') }}">Falls Back Log</a>
+                <a href="{{ url_for('analytics') }}">Falls Analytics</a>
+            </div>
+        </div>
+
+        
+        <a href="{{ url_for('pill_detection') }}">Pill Detection</a>
+        <div class="custom-dropdown">
+            <button class="dropbtn">Manage Pills</button>
+            <div class="dropdown-content">
+                <a href="{{ url_for('upload_pills') }}">Upload Pills</a>
+                <a href="{{ url_for('configure_pills') }}">Pill Configuration</a>
+                <a href="{{ url_for('configure_routine') }}">Medication Routine Configuration</a>
+                <a href="{{ url_for('routine_history') }}">Medication Routine History</a>
+                <a href="{{ url_for('record_medication') }}">Medication Recording</a>
+                <a href="{{ url_for('medication_recording') }}">View Medication Recording</a>
+            </div>
+        </div>
+        <div class="custom-dropdown">
+            <button class="dropbtn">Manage Memory Game</button>
+            <div class="dropdown-content">
+                <a href="{{ url_for('setup_memory_game') }}">Upload Memory Game Faces</a>
+                <a href="{{ url_for('configure_game') }}">Game Configuration</a>
+                <a href="{{ url_for('play_memory_game') }}">Play Memory Game</a>
+                <a href="{{ url_for('all_results') }}">Game History</a>
+                <a href="{{ url_for('memory_game') }}">Memory Cards</a>
+            </div>
+        </div>
+        <a href="{{ url_for('medication_dashboard') }}">Medication Dashboard</a>
+        <!-- Separate logout button with different styling -->
+        <form action="{{ url_for('logout') }}" method="post" class="logout-form">
+            <input type="submit" value="Logout">
+        </form>
+    </div>
+    
+    
+    <script>
+        document.querySelector('.hamburger').addEventListener('click', function () {
+            document.querySelector('.custom-navbar').classList.toggle('show');
+        });
+    </script>
+
+<div class="content">
+    {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>

@@ -1,0 +1,59 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+}
+
+.container-fluid {
+    background-color: #28a745; /* Green background color for the top bar */
+    color: #fff; /* White text color */
+    padding-top: 20px;
+}
+
+.sidebar {
+    background-color: #28a745; /* Green sidebar color */
+    color: #fff; /* White text color */
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.sidebar-sticky {
+    position: relative;
+    top: 0;
+    height: calc(100vh - 48px);
+    padding-top: 0.5rem;
+    overflow-x: hidden;
+    overflow-y: auto; /* Scrollable sidebar content */
+}
+
+h5.sidebar-heading {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    color: #28a745; /* Green heading color */
+}
+
+#video-stream {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    transform: scaleX(-1); /* Mirrored webcam stream */
+}
+
+/* Hamburger menu icon */
+.navbar-toggler-icon {
+    background-color: #fff; /* White color for the hamburger menu icon */
+}
+
+.navbar-brand{
+    background-color: #fff; /* White color for the hamburger menu icon */
+    height:100px;
+}
+
+.mirrored-container {
+    transform: scaleX(-1);
+}

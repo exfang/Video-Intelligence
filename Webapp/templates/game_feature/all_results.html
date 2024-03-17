@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}All Game Results{% endblock %}
+
+{% block content %}
+    <h1>All Game Results</h1>
+    <div style="max-width: 100%; overflow-x: auto;">
+    <table class="routine-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Entry Time</th>
+                <th>Tries</th>
+                <th>No. of Photos</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in results %}
+                <tr>
+                    <td>{{ result.id }}</td>
+                    <td>{{ result.entry.strftime('%d %b %Y %H:%M %p') }}</td>
+                    <td>{{ result.tries }}</td>
+                    <td>{{ result.photo_count }}</td>
+                    <td>
+                        <form action="{{ url_for('delete_result', result_id=result.id) }}" method="post">
+                            <input class="delete-button" type="submit" value="Delete" onclick="return confirm('Are you sure?')">
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+{% endblock %}

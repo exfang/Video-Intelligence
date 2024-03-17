@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block title %}Memory Game{% endblock %}
+
+{% block content %}
+
+<h1>Memory Game</h1>
+
+<!-- Start game and End game buttons -->
+<button onclick="startGame()" class="rounded-input">Start Game</button>
+<button onclick="endGame()" class="rounded-input">End Game</button>
+
+<!-- Display uploaded faces and names -->
+<div id="game-container" style="display: none;">
+    <h2>Drag the Images to the correct Names</h2>
+    <p id="try-count">Tries: 0</p>
+    <p id="alert-here"></p>
+    
+    <div class="game-dropdown">
+    {% for folder, images in image_data.items() %}
+        <div class="inline">
+            <strong class="name-container" ondrop="drop(event)" ondragover="allowDrop(event)" data-folder="{{ folder }}">{{ folder }}</strong>
+        </div>
+    {% endfor %}
+    </div>
+    <div id="images-container">
+
+    
+    {% for folder, images in image_data.items() %}
+        {% for image in images %}
+            <img class="draggable" draggable="true" ondragstart="drag(event)" ondragend="dragEnd(event)" data-folder="{{ folder }}" data-image="{{ image }}" src="{{ url_for('view_image', folder=folder, image=image) }}" alt="{{ image }}" style="width: 100px; height: 100px;">
+        {% endfor %}
+    {% endfor %}
+    </div>
+
+    <form id="game-form" method="post" action="/process_game_result" style="display: none;">
+        <input type="hidden" id="try-counter-input" name="try_counter" value="">
+        <input type="hidden" id="photo-count-input" name="photo_count" value="">
+    </form>
+</div>
+
+<script>
+    // JavaScript functions for drag-and-drop
+    var tryCounter = 0;  // Counter for total tries
+
+    function allowDrop(event) {
+        event.preventDefault();
+    }
+
+    function drag(event) {
+        // Set the 'text' data to contain the folder and image information
+        var data = event.target.dataset.folder + "/" + event.target.dataset.image;
+        console.log("Dragged data:", data);
+        event.dataTransfer.setData("text", data);
+
+        // Remove the "Wrong Name" text if it exists
+        removeWrongNameText();
+    }
+
+    function dragEnd(event) {
+        // Increment the try counter when dragging ends
+        tryCounter++;
+        console.log(tryCounter)
+        document.getElementById('try-count').textContent = "Tries: " + tryCounter;
+    }
+
+    function drop(event) {
+        event.preventDefault();
+        var data = event.dataTransfer.getData("text");
+        var [dragFolder, dragImage] = data.split("/");
+        
+        // Check if the dropped image matches the name
+        var targetFolder = event.target.dataset.folder;
+
+        // Find the nearest ancestor with the class 'name-container'
+        var nameContainer = event.target.closest('.name-container');
+
+        // Check if the "Wrong Name" text is already displayed
+        var wrongNameText = document.querySelector('.wrong-name-text');
+
+        if (nameContainer && targetFolder === dragFolder && !wrongNameText) {
+            // Add logic for a correct match
+            console.log("Correct match:", dragFolder, dragImage);
+
+            // You may want to remove the dragged image from the display or provide feedback to the user
+            var draggedElement = document.querySelector("[data-folder='" + dragFolder + "'][data-image='" + dragImage + "']");
+            
+            if (draggedElement) {
+                nameContainer.appendChild(draggedElement);
+                // Remove the "Wrong Name" text if it exists
+                removeWrongNameText();
+                
+                // Check if all images are in the correct places
+                if (checkAllImagesCorrect()) {
+                    // Enable the End Game button
+                    enableEndGameButton();
+                }
+            } else {
+                console.log("Error: Dragged element not found");
+            }
+        } else if (nameContainer && targetFolder !== dragFolder && !wrongNameText) {
+            // Add logic for an incorrect match
+            console.log("Incorrect match:", dragFolder, dragImage);
+
+            // Display a red text saying "Wrong Name" below the "Names" section
+            var wrongNameText = document.createElement('span');
+            wrongNameText.style.color = 'red';
+            wrongNameText.className = 'wrong-name-text';
+            wrongNameText.innerHTML = 'Wrong Name';
+            document.getElementById('alert-here').appendChild(wrongNameText);
+
+            // Remove the "Wrong Name" text after a delay (e.g., 2 seconds)
+            setTimeout(function () {
+                removeWrongNameText();
+            }, 2000);
+        }
+    }
+
+    // Function to remove the "Wrong Name" text
+    function removeWrongNameText() {
+        var wrongNameText = document.querySelector('.wrong-name-text');
+        if (wrongNameText) {
+            wrongNameText.remove();
+        }
+    }
+
+     // Function to shuffle the order of elements in a container
+     function shuffleElements(containerId) {
+        var container = document.getElementById(containerId);
+        for (var i = container.children.length; i >= 0; i--) {
+            container.appendChild(container.children[Math.random() * i | 0]);
+        }
+    }
+
+    // Function to start the game
+    function startGame() {
+        // Show the game container
+        document.getElementById('game-container').style.display = 'block';
+        shuffleElements('images-container');
+        // Disable the End Game button at the start
+        disableEndGameButton();
+    }
+
+    // Function to end the game and redirect to play_memory_game
+    function endGame() {
+        // Check if all images are in the correct places before ending the game
+        if (checkAllImagesCorrect()) {
+            // Set the values for tryCounter and the number of photos
+            document.getElementById('try-counter-input').value = tryCounter;
+            document.getElementById('photo-count-input').value = document.querySelectorAll('.draggable').length;
+
+            // Submit the form
+            document.getElementById('game-form').submit();
+        } else {
+            // Notify the user that not all images are in the correct places
+            alert("Please place all images in the correct positions before ending the game.");
+        }
+    }
+
+
+    // Function to check if all images are in the correct places
+    function checkAllImagesCorrect() {
+        var allImages = document.querySelectorAll('.draggable');
+        for (var i = 0; i < allImages.length; i++) {
+            var image = allImages[i];
+            var imageFolder = image.dataset.folder;
+            var imageContainer = image.closest('.name-container');
+            if (!imageContainer || imageFolder !== imageContainer.dataset.folder) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Function to enable the End Game button
+    function enableEndGameButton() {
+        document.querySelector('[onclick="endGame()"]').disabled = false;
+    }
+
+    // Function to disable the End Game button
+    function disableEndGameButton() {
+        document.querySelector('[onclick="endGame()"]').disabled = true;
+    }
+</script>
+{% endblock %}

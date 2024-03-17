@@ -1,0 +1,10 @@
+names:
+- gastric
+- heart
+- ibuprofen
+- nausea
+- panadol
+nc: 5
+train: Merged_Images/train/images
+test: Merged_Images/test/images
+val: Merged_Images/val/images

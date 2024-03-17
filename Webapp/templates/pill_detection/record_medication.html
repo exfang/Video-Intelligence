@@ -1,0 +1,72 @@
+<!-- record_medication.html -->
+
+
+{% extends 'base.html' %}
+
+{% block title %}Record Medication{% endblock %}
+
+{% block content %}
+{% if 'timestamp' in session %}
+    <h1>Medicine Recording</h1>
+
+    <button id="startButton" class='rounded-input' onclick="startRecording()">Start Recording</button>
+    <button id="stopButton" class='rounded-input' onclick="stopRecording()" disabled>Stop Recording</button>
+    <style>
+    img {
+        max-width: 100%;
+        max-height: 100%;
+    }
+</style>
+    <div>
+        <img src="{{ url_for('medication_video_feed_route') }}" type="multipart/x-mixed-replace; boundary=frame">
+    </div>
+    <div id="statusMessage"></div>
+
+    <script>
+        let isRecording = false;
+
+        function startRecording() {
+            fetch('/start_recording')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('startButton').disabled = true;
+                        document.getElementById('stopButton').disabled = false;
+                        isRecording = true;
+                        document.getElementById('statusMessage').innerText = 'Recording started';
+                    } else {
+                        document.getElementById('statusMessage').innerText = 'Failed to start recording';
+                    }
+                })
+                .catch(error => console.error('Error starting recording:', error));
+        }
+
+        function stopRecording() {
+            fetch('/stop_recording')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('startButton').disabled = false;
+                        document.getElementById('stopButton').disabled = true;
+                        isRecording = false;
+                        document.getElementById('statusMessage').innerHTML = 'Recording stopped and saved <a href="/medication_recording">here</a>.';
+                    } else {
+                        document.getElementById('statusMessage').innerText = 'Failed to stop recording.';
+                    }
+                })
+                .catch(error => console.error('Error stopping recording:', error));
+        }
+
+        // Optionally, you may want to automatically stop recording when the user leaves the page
+        window.addEventListener('beforeunload', function (e) {
+            if (isRecording) {
+                e.preventDefault();
+                stopRecording();
+            }
+        });
+    </script>
+{% else %}
+Please access this page via the <a href="/pill_detection">pill detection</a> page.
+{% endif %}
+{% endblock %}
+

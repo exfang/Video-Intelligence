@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webcam Stream</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <!-- ... (previous code) ... -->
+
+    <nav class="navbar navbar-dark fixed-top bg-dark navbar-expand-lg">
+        <!-- Logo -->
+        <a class="navbar-brand" href="#">
+            <img src="{{ url_for('static', filename='greendale.png') }}" height="90" alt="Your Logo">
+        </a>
+        <!-- Navbar Links -->
+        <div class="navbar-nav mx-auto justify-content-around">
+            <a class="nav-item nav-link" href="{{ url_for('index') }}">Home</a>
+            <a class="nav-item nav-link" href="{{ url_for('page1') }}">Monitor</a>
+            <a class="nav-item nav-link" href="{{ url_for('page2') }}">Page 2</a>
+        </div>
+    </nav>
+
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

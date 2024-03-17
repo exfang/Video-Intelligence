@@ -1,0 +1,166 @@
+<!-- caregiver.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Caregiver Management</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Caregiver Management</h2>
+
+        <!-- Button to trigger the modal -->
+        <button id="addCaregiverBtn" class="btn btn-primary" data-toggle="modal" data-target="#addCaregiverModal">Add Caregiver</button>
+
+        <!-- Modal for adding caregiver data -->
+        <div class="modal fade" id="addCaregiverModal" tabindex="-1" role="dialog" aria-labelledby="addCaregiverModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addCaregiverModalLabel">Add Caregiver</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Form for adding caregiver data -->
+                        <form id="addCaregiverForm" enctype="multipart/form-data" onsubmit="event.preventDefault(); addCaregiver();">
+
+                            <div class="form-group">
+                                <label for="name">Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="relationship">Relationship</label>
+                                <input type="text" class="form-control" id="relationship" name="relationship" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="number">Number</label>
+                                <input type="text" class="form-control" id="number" name="number" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="photo">Upload Photo:</label>
+                                <input type="file" class="form-control-file" id="photo" name="photo" onchange="previewImage(this)">
+                                <img id="imagePreview" src="#" alt="Image Preview" style="display: none; max-width: 100%;">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Caregiver</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table to view caregiver data -->
+        <h3 class="mt-4">Caregiver Data</h3>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Relationship</th>
+                    <th>Number</th>
+                    <th>Email</th>
+                    <th>Photo</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for caregiver in caregivers %}
+                    <tr>
+                        <td>{{ caregiver.id }}</td>
+                        <td>
+                            {% if caregiver.photo_path and caregiver.photo_path != caregiver.default_photo_path %}
+                                <img src="{{ url_for('uploaded_file', caregiver_id=caregiver.id, filename=caregiver.photo_path) }}" alt="{{ caregiver.name }} Photo" style="max-width: 100px;">
+                            {% else %}
+                                <img src="{{ url_for('uploaded_file', caregiver_id=caregiver.id, filename=caregiver.default_photo_path) }}" alt="Default Photo" style="max-width: 100px;">
+                            {% endif %}
+                        </td>
+                        <td>{{ caregiver.name }}</td>
+                        <td>{{ caregiver.relationship }}</td>
+                        <td>{{ caregiver.number }}</td>
+                        <td>{{ caregiver.email }}</td>
+
+
+
+
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteCaregiver({{ caregiver.id }})">Remove</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Bootstrap and jQuery scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        function deleteCaregiver(id) {
+            // Use JavaScript to make an AJAX request to delete the caregiver
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/delete_caregiver/' + id, true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function () {
+                // Reload the page to reflect the changes
+                location.reload();
+            };
+            xhr.send();
+        }
+
+        function addCaregiver() {
+            // Get the form data
+            var form = document.getElementById('addCaregiverForm');
+            var formData = new FormData(form);
+
+            // Use JavaScript to make an AJAX request to add the caregiver
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/add_caregiver', true);
+
+            // Log any errors in the browser console
+            xhr.onerror = function () {
+                console.error('Error adding caregiver:', xhr.statusText);
+            };
+
+            xhr.onload = function () {
+                // Reload the page to reflect the changes
+                location.reload();
+            };
+
+            xhr.send(formData);
+
+            // Close the modal after submitting the form
+            $('#addCaregiverModal').modal('hide');
+        }
+
+        function previewImage(input) {
+            console.log("Preview image function called");
+            var imagePreview = document.getElementById('imagePreview');
+            var fileInput = input.files[0];
+
+            if (fileInput) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+
+                reader.readAsDataURL(fileInput);
+            } else {
+                imagePreview.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

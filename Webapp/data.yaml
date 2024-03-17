@@ -1,0 +1,7 @@
+names:
+- gastric
+- green
+nc: 2
+test: Merged_Images/test/images
+train: Merged_Images/train/images
+val: Merged_Images/val/images
