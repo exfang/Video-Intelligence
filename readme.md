@@ -178,8 +178,61 @@ Some Use Case examples of the Project:
 - If any deviations are detected, the healthcare provider intervenes to address the issue promptly.
 
 
+## Preview of Pill Detection Feature created by me.
 
+Below is an image of the pill detection detecting the pills shown. The right contains the pills required to be consumed by the elderly. It is configured by the caregiver.
 
+![image](https://github.com/exfang/Video-Intelligence/assets/98097965/492c9ae2-347e-4909-9498-195eaa7f1910)
+
+Below is the pill upload page for caregivers to upload images of pills the elderly is required to consume.
+
+![image](https://github.com/exfang/Video-Intelligence/assets/98097965/427a4d18-722b-4660-b3c6-7661205e0c43)
+
+Caregivers can manage the pills on the pill configuration page.
+
+![image](https://github.com/exfang/Video-Intelligence/assets/98097965/25fec43f-834d-4334-b821-ba07db8528d6)
+
+When users are done uploading the pills, they MUST retrain the model to ensure it learns to detect the pills shown. I have done the backend for automating training with just the click of a button. Model training will run in the backend. 
+
+![image](https://github.com/exfang/Video-Intelligence/assets/98097965/5256e4f7-b118-42dd-8d46-89ab4b79d9af)
+
+Caregivers can proceed to configure medication routines
+
+![image](https://github.com/exfang/Video-Intelligence/assets/98097965/85b9a46c-cf3b-449b-a011-b4a2fbb54aa5)
+
+Each time a user shows the pills <I>they are required to consume</i> to the pill detection page, they are required to create a video log showing that they consumed the pills.
+
+![image](https://github.com/exfang/Video-Intelligence/assets/98097965/27767186-6a64-41ff-ac42-d0b07eba7a01)
+
+The video log gets stored along with an image to capture the shown pills.
+
+![image](https://github.com/exfang/Video-Intelligence/assets/98097965/7c37e7db-bb1c-4bbc-8919-4c367cb13be3)
+
+A dashboard is also created for caregivers to easily supervise whether their patients adhere to their medication routines.
+
+![image](https://github.com/exfang/Video-Intelligence/assets/98097965/8ab0fb0f-f441-42ad-87c8-85ad6aab6978)
+
+## Preview of Memory Drag-and-drop Game Feature created by me.
+
+Similar to pill detection, caregivers can upload images of a person/object.
+
+![image](https://github.com/exfang/Video-Intelligence/assets/98097965/758f2177-90ef-4d82-b5f5-fef6ba4c72e3)
+
+Here are some existing configurations. Caregivers can manage the uploaded images.
+
+![image](https://github.com/exfang/Video-Intelligence/assets/98097965/5dfe11ed-18ff-4296-a25f-2348845039b3)
+
+The patient starts by pressing the start game and will be shown the images configured by the caregiver. 
+
+![image](https://github.com/exfang/Video-Intelligence/assets/98097965/3e9b3f68-be18-4ca8-8976-c657a0c078b2)
+
+When all images are placed in the correct labels, users can end the game and the results are logged.
+
+![image](https://github.com/exfang/Video-Intelligence/assets/98097965/ab87535b-1450-4838-8721-a74b3a60de64)
+
+A game history page is created for caregivers to evaluate the cognitive ability of a patient overtime. More tries with less photo = patient struggle to associate the photo with the correct labels, resulting in them having to take more tries than normal to correctly label all the images.
+
+![image](https://github.com/exfang/Video-Intelligence/assets/98097965/6591d869-fa19-489c-abf8-948e9b94d18a)
 
 
 
