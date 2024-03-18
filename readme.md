@@ -178,7 +178,7 @@ Some Use Case examples of the Project:
 - If any deviations are detected, the healthcare provider intervenes to address the issue promptly.
 
 
-## Preview of Pill Detection Feature created by me.
+# Preview of Pill Detection Feature created by me.
 
 Below is an image of the pill detection detecting the pills shown. The right contains the pills required to be consumed by the elderly. It is configured by the caregiver.
 
@@ -212,7 +212,7 @@ A dashboard is also created for caregivers to easily supervise whether their pat
 
 ![image](https://github.com/exfang/Video-Intelligence/assets/98097965/8ab0fb0f-f441-42ad-87c8-85ad6aab6978)
 
-## Preview of Memory Drag-and-drop Game Feature created by me.
+# Preview of Memory Drag-and-drop Game Feature created by me.
 
 Similar to pill detection, caregivers can upload images of a person/object.
 
